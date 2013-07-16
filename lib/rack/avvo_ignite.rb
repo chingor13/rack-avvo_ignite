@@ -11,8 +11,12 @@ module Rack
       status, headers, response = @app.call(env)
 
       if headers['Content-Type'].to_s.include?('text/html') # Only update HTML bodies
-        response.body = response.body.gsub('</body>', message + '</body>')
-        headers['Content-Length'] = Rack::Utils.bytesize(response.body.to_s).to_s
+        response.each do |part|
+          if part.rindex('</body>')
+            part.gsub!('</body>', message + '</body>')
+            headers['Content-Length'] = (headers['Content-Length'].to_i + message.length).to_s
+          end
+        end
       end
 
       [status, headers, response]
